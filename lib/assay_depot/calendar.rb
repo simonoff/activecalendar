@@ -6,11 +6,10 @@ module ActionView
   module Helpers
     module DepotDateHelper
       def depot_date_select(options = {})
-        if(options[:id].blank?)
-          options[:id] = options[:name]
-        end
-
-        options[:ifFormat] ||= "%Y/%m/%d"
+        options[:id] = options[:name] if options[:id].blank?
+        disabled = ""
+        disabled << %(disabled="true") if options[:disabled].to_s == "true"
+        options[:ifFormat] ||= "%m/%d/%Y"
 
         if value(object) == nil
           date = ""
@@ -20,50 +19,45 @@ module ActionView
 
         error = !object.errors.nil? && !object.errors.on(options[:method]).nil?
         html  = ""
-        if error
-          html << %(<div class="fieldWithErrors"> \n)
+        
+        html << %(<div class="fieldWithErrors"> \n) if error
+
+        html << %(<input type="text" name="#{options[:name]}" value="#{date}" class="#{options[:class]} text-input" id="#{options[:id]}" #{disabled} />\n)
+        unless options[:disabled]
+          html << %(<img src="/images/calendar.png" id="#{options[:id]}_trigger" style="cursor: pointer;" title="Date selector" />\n)
+
+          calendar_options = Hash.new
+          calendar_options.replace(options)
+          calendar_options["inputField"] ||= "#{options[:id]}"
+          calendar_options["button"] ||= "#{options[:id]}_trigger"
+          calendar_options.delete_if { | key, value |
+            [ :name, :class, :id, :object_name, :method, :disabled ].include? key
+          }
+
+          html << %(<script type="text/javascript">\n)
+          html << %(    Calendar.setup\({\n)
+          calendar_options.each { | key, value |
+            if(key.to_s.eql?('dateStatusFunc') || !value.instance_of?(String))
+              html << %(        #{key} : #{value},\n )
+            else
+              html << %(        #{key} : "#{value}",\n )
+            end
+          }
+          html << %(        singleClick    :    true\n)
+          html << %(    }\);\n)
+          html << %(</script>\n)
         end
-
-        html << %(<input type="text" name="#{options[:name]}" value="#{date}" class="#{options[:class]} text-input" id="#{options[:id]}" />\n)
-        html << %(<img src="/images/calendar.png" id="#{options[:id]}_trigger" style="cursor: pointer;" title="Date selector" />\n)
-
-        calendar_options = Hash.new
-        calendar_options.replace(options)
-        calendar_options["inputField"] ||= "#{options[:id]}"
-        calendar_options["button"] ||= "#{options[:id]}_trigger"
-        calendar_options.delete_if { | key, value |
-          [ :name, :class, :id, :object_name, :method ].include? key
-        }
-
-        html << %(<script type="text/javascript">\n)
-        html << %(    Calendar.setup\({\n)
-        calendar_options.each { | key, value |
-          if(key.to_s.eql?('dateStatusFunc') || !value.instance_of?(String))
-            html << %(        #{key} : #{value},\n )
-          else
-            html << %(        #{key} : "#{value}",\n )
-          end
-        }
-#        html << %(        inputField     :    "#{options[:id]}",     // id of the input field\n)
-#        html << %(        ifFormat       :    "%m/%d/%Y",      // format of the input field\n)
-#        html << %(        button         :    "#{options[:id]}_trigger",  // trigger for the calendar, button ID\n)
-        html << %(        singleClick    :    true\n)
-        html << %(    }\);\n)
-        html << %(</script>\n)
-
-        if error
-          html << %(</div> \n)
-        end
+        
+        html << %(</div> \n) if error
 
         html
       end
       
       def depot_datetime_select(options = {})
-        if(options[:id].blank?)
-          options[:id] = options[:name]
-        end
-
-        options[:ifFormat] ||= "%m/%d/%Y %I:%M %p"
+        options[:id] = options[:name] if options[:id].blank?
+        disabled = ""
+        disabled  << %(disabled="true") if options[:disabled].to_s == "true"
+        options[:ifFormat] ||= "%m/%d/%Y %H:%M"
 
         if value(object) == nil
           datetime = ""
@@ -73,40 +67,36 @@ module ActionView
 
         error = !object.errors.nil? && !object.errors.on(options[:method]).nil?
         html  = ""
-        if error
-          html << %(<div class="fieldWithErrors"> \n)
+        html << %(<div class="fieldWithErrors"> \n) if error
+
+        html << %(<input type="text" name="#{options[:name]}" value="#{datetime}" class="#{options[:class]} text-input" id="#{options[:id]}" #{disabled}/>\n)
+        unless options[:disabled]
+          html << %(<img src="/images/calendar.png" id="#{options[:id]}_trigger" style="cursor: pointer;" title="Date & Time selector" />\n)
+
+          calendar_options = Hash.new
+          calendar_options.replace(options)
+          calendar_options["inputField"] ||= "#{options[:id]}"
+          calendar_options["button"] ||= "#{options[:id]}_trigger"
+          calendar_options.delete_if { | key, value |
+            [ :name, :class, :id, :object_name, :method, :disabled ].include? key
+          }
+
+          html << %(<script type="text/javascript">\n)
+          html << %(    Calendar.setup\({\n)
+          calendar_options.each { | key, value |
+            if(key.to_s.eql?('dateStatusFunc') || !value.instance_of?(String))
+              html << %(        #{key} : #{value},\n )
+            else
+              html << %(        #{key} : "#{value}",\n )
+            end
+          }
+          html << %(        singleClick    :    true, \n)
+          html << %(        showsTime      :    true, \n)
+          html << %(        time24         :    true \n)
+          html << %(    }\);\n)
+          html << %(</script>\n)
         end
-
-        html << %(<input type="text" name="#{options[:name]}" value="#{datetime}" class="#{options[:class]} text-input" id="#{options[:id]}" />\n)
-        html << %(<img src="/images/calendar.png" id="#{options[:id]}_trigger" style="cursor: pointer;" title="Date & Time selector" />\n)
-
-        calendar_options = Hash.new
-        calendar_options.replace(options)
-        calendar_options["inputField"] ||= "#{options[:id]}"
-        calendar_options["button"] ||= "#{options[:id]}_trigger"
-        calendar_options.delete_if { | key, value |
-          [ :name, :class, :id, :object_name, :method ].include? key
-        }
-
-        html << %(<script type="text/javascript">\n)
-        html << %(    Calendar.setup\({\n)
-        calendar_options.each { | key, value |
-          if(key.to_s.eql?('dateStatusFunc') || !value.instance_of?(String))
-            html << %(        #{key} : #{value},\n )
-          else
-            html << %(        #{key} : "#{value}",\n )
-          end
-        }
-        html << %(        singleClick    :    true, \n)
-        html << %(        showsTime      :    true, \n)
-        html << %(        time24         :    false \n)
-        html << %(    }\);\n)
-        html << %(</script>\n)
-
-        if error
-          html << %(</div> \n)
-        end
-
+        html << %(</div> \n) if error
         html
       end
     end
