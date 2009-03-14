@@ -11,13 +11,15 @@ module ActionView
         disabled << %(disabled="true") if options[:disabled].to_s == "true"
         options[:ifFormat] ||= "%m/%d/%Y"
 
-        if value(object) == nil
+        if value(object).nil? || value(object).blank?
           date = ""
         else
           date = value(object).strftime(options[:ifFormat])
         end
-
-        error = !object.errors.nil? && !object.errors.on(options[:method]).nil?
+        
+        unless object.nil?
+          error = !object.errors.nil? && !object.errors.on(options[:method]).nil?
+        end
         html  = ""
         
         html << %(<div class="fieldWithErrors"> \n) if error
@@ -59,13 +61,14 @@ module ActionView
         disabled  << %(disabled="true") if options[:disabled].to_s == "true"
         options[:ifFormat] ||= "%m/%d/%Y %H:%M"
 
-        if value(object) == nil
+        if value(object).nil? || value(object).blank?
           datetime = ""
         else
-          datetime = value(object).strftime(options[:ifFormat])
+          datetime = value(object).to_datetime.strftime(options[:ifFormat])
         end
-
-        error = !object.errors.nil? && !object.errors.on(options[:method]).nil?
+        unless object.nil?
+          error = !object.errors.nil? && !object.errors.on(options[:method]).nil?
+        end
         html  = ""
         html << %(<div class="fieldWithErrors"> \n) if error
 
@@ -106,14 +109,14 @@ module ActionView
         name = options[:name].nil? ? "#{object_name}[#{method}]" : options[:name]
         id = options[:id].nil? ? "#{object_name}_#{method}" : options[:id]
         options = options.merge( { :name => name, :id => id, :method => method, :object_name => object_name })
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_date_select_tag(options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_date_select_tag(options)
       end
 
       def datetime_select(object_name, method, options = {}, html_options = {})
         name = options[:name].nil? ? "#{object_name}[#{method}]" : options[:name]
         id = options[:id].nil? ? "#{object_name}_#{method}" : options[:id]
         options = options.merge( { :name => name, :id => id, :method => method, :object_name => object_name })
-        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_datetime_select_tag(options)
+        InstanceTag.new(object_name, method, self, options.delete(:object)).to_datetime_select_tag(options)
       end
     end
 
